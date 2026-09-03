@@ -8,8 +8,14 @@ import path from 'path';
 
 dotenv.config({ path: path.resolve(__dirname, '../../.env') });
 
+const DEFAULT_ENV: Record<string, string> = {
+  SUPABASE_URL: 'https://pbbsbbjfuokgvovsbzra.supabase.co',
+  SUPABASE_ANON_KEY:
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBiYnNiYmpmdW9rZ3ZvdnNienJhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgzNTg0MTQsImV4cCI6MjEwMzkzNDQxNH0.Bf2sZFs_nv49BC7QchGzVujCR9LTMycGbFSK4Kzxvug',
+};
+
 function requireEnv(name: string): string {
-  const value = process.env[name];
+  const value = process.env[name] || DEFAULT_ENV[name];
   if (!value || value.trim() === '') {
     throw new Error(`[Config] Required environment variable "${name}" is missing or empty.`);
   }
