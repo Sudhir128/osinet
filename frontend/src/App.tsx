@@ -1,8 +1,7 @@
 /**
  * OSINET Frontend — Application Router
  */
-import React from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { HashRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider } from './features/auth/AuthContext';
 import ProtectedRoute from './routes/ProtectedRoute';
@@ -19,7 +18,7 @@ import ComingSoonPage from './pages/ComingSoonPage';
 export default function App() {
   return (
     <AuthProvider>
-      <BrowserRouter>
+      <Router>
         <Routes>
           {/* Public */}
           <Route path="/login" element={<LoginPage />} />
@@ -52,7 +51,7 @@ export default function App() {
 
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
-      </BrowserRouter>
+      </Router>
 
       <Toaster
         position="bottom-right"
