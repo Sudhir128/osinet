@@ -13,11 +13,13 @@ import {
   Edit3,
   Archive,
   CheckSquare,
+  Sparkles,
 } from 'lucide-react';
 import api from '../../services/api';
 import type { Case, Target as TargetType } from '../../types';
 import { formatDistanceToNow, format } from 'date-fns';
 import AddTargetModal from '../targets/AddTargetModal';
+import EnrichmentModal from '../targets/EnrichmentModal';
 import toast from 'react-hot-toast';
 
 const STATUS_BADGE_CLASS: Record<string, string> = {
@@ -45,6 +47,7 @@ export default function CaseDetailPage() {
   const [error, setError] = useState<string | null>(null);
   const [showAddTarget, setShowAddTarget] = useState(false);
   const [updatingStatus, setUpdatingStatus] = useState(false);
+  const [selectedTargetForEnrichment, setSelectedTargetForEnrichment] = useState<TargetType | null>(null);
 
   useEffect(() => {
     if (!id) return;
@@ -250,6 +253,7 @@ export default function CaseDetailPage() {
                   <th>Normalized Value</th>
                   <th>Notes</th>
                   <th>Added</th>
+                  <th>Intelligence</th>
                 </tr>
               </thead>
               <tbody>
@@ -270,6 +274,26 @@ export default function CaseDetailPage() {
                     <td className="text-xs text-muted">
                       {formatDistanceToNow(new Date(t.created_at), { addSuffix: true })}
                     </td>
+                    <td>
+                      <button
+                        type="button"
+                        className="btn btn-secondary btn-sm"
+                        onClick={() => setSelectedTargetForEnrichment(t)}
+                        style={{
+                          fontSize: '0.75rem',
+                          padding: '2px 8px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '4px',
+                          borderColor: 'var(--color-primary)',
+                          color: 'var(--color-primary)',
+                        }}
+                        title="View simulated intelligence from Shodan, Censys, IPInfo, WhoisXML, HIBP"
+                      >
+                        <Sparkles size={12} />
+                        Enrich (OSINT)
+                      </button>
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -277,6 +301,14 @@ export default function CaseDetailPage() {
           </div>
         )}
       </div>
+
+      {/* OSINT Enrichment Telemetry Modal */}
+      {selectedTargetForEnrichment && (
+        <EnrichmentModal
+          target={selectedTargetForEnrichment}
+          onClose={() => setSelectedTargetForEnrichment(null)}
+        />
+      )}
 
       {/* Add Target Modal */}
       {showAddTarget && (

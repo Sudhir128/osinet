@@ -4,10 +4,10 @@
 import React, { useState, type FormEvent } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from './AuthContext';
-import { Shield, Eye, EyeOff, AlertCircle, UserPlus, CheckCircle2, User, KeyRound } from 'lucide-react';
+import { Shield, Eye, EyeOff, AlertCircle, UserPlus, CheckCircle2, User, KeyRound, Sparkles, Zap } from 'lucide-react';
 
 export default function LoginPage() {
-  const { signIn, signUp, isAuthenticated, loading } = useAuth();
+  const { signIn, signUp, signInDemo, isAuthenticated, loading } = useAuth();
   const [isSignUp, setIsSignUp] = useState(false);
   const [displayName, setDisplayName] = useState('');
   const [email, setEmail] = useState('');
@@ -124,6 +124,77 @@ export default function LoginPage() {
 
         {/* Authentication Card */}
         <div className="card" style={{ padding: 'var(--space-6) var(--space-8)' }}>
+          {/* Quick Demo Access Mode */}
+          <div style={{
+            background: 'linear-gradient(135deg, rgba(0, 212, 255, 0.08), rgba(0, 150, 255, 0.03))',
+            border: '1px solid rgba(0, 212, 255, 0.25)',
+            borderRadius: 'var(--radius-md)',
+            padding: 'var(--space-4)',
+            marginBottom: 'var(--space-5)',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 'var(--space-2)',
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <span style={{ fontSize: '0.875rem', fontWeight: 700, color: 'var(--color-primary)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <Sparkles size={16} /> Instant Demo Mode
+              </span>
+              <span className="badge badge-open" style={{ fontSize: '0.625rem', letterSpacing: '0.05em' }}>APIS SIMULATED</span>
+            </div>
+            <p style={{ fontSize: '0.75rem', color: 'var(--color-text-secondary)', margin: 0, lineHeight: 1.4 }}>
+              Explore cases, targets, and simulated OSINT intelligence feeds (Shodan, Censys, IPInfo, WhoisXML, HIBP) without needing live API keys.
+            </p>
+            <div style={{ display: 'flex', gap: 'var(--space-2)', marginTop: '4px' }}>
+              <button
+                type="button"
+                id="demo-login-investigator-btn"
+                onClick={() => signInDemo('INVESTIGATOR')}
+                className="btn btn-primary"
+                style={{
+                  flex: 1,
+                  fontSize: '0.8125rem',
+                  padding: 'var(--space-2) var(--space-3)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '6px',
+                }}
+              >
+                <Zap size={14} />
+                Demo Investigator
+              </button>
+              <button
+                type="button"
+                id="demo-login-admin-btn"
+                onClick={() => signInDemo('SYSTEM_ADMIN')}
+                className="btn btn-secondary"
+                style={{
+                  fontSize: '0.8125rem',
+                  padding: 'var(--space-2) var(--space-3)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '6px',
+                }}
+              >
+                Admin
+              </button>
+            </div>
+          </div>
+
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            textAlign: 'center',
+            marginBottom: 'var(--space-5)',
+            color: 'var(--color-text-muted)',
+            fontSize: '0.6875rem',
+          }}>
+            <div style={{ flex: 1, height: '1px', background: 'var(--color-border)' }} />
+            <span style={{ padding: '0 8px', textTransform: 'uppercase', letterSpacing: '0.08em' }}>or sign in with credentials</span>
+            <div style={{ flex: 1, height: '1px', background: 'var(--color-border)' }} />
+          </div>
+
           {/* Mode Switch Tabs */}
           <div style={{
             display: 'flex',

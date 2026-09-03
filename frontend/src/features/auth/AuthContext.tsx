@@ -1,6 +1,6 @@
 /**
  * OSINET Frontend — Auth Context
- * Provides authentication state and Supabase auth operations.
+ * Provides authentication state, Supabase auth operations, and Demo Mode instant login.
  */
 import React, {
   createContext,
@@ -12,7 +12,8 @@ import React, {
 } from 'react';
 import { supabase } from '../../lib/supabase';
 import type { User, Session } from '@supabase/supabase-js';
-import type { UserProfile } from '../../types';
+import type { UserProfile, OsinetRole } from '../../types';
+import { mockStore } from '../../services/mockStore';
 
 interface AuthContextValue {
   user: User | null;
@@ -22,11 +23,15 @@ interface AuthContextValue {
   error: string | null;
   signIn: (email: string, password: string) => Promise<void>;
   signUp: (email: string, password: string, displayName?: string) => Promise<{ session: Session | null; user: User | null }>;
+  signInDemo: (role?: OsinetRole) => void;
   signOut: () => Promise<void>;
   isAuthenticated: boolean;
+  isDemoMode: boolean;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
+
+const DEMO_SESSION_KEY = 'osinet_demo_auth_session';
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
@@ -34,6 +39,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isDemoMode, setIsDemoMode] = useState(true);
 
   const fetchProfile = useCallback(async (userId: string, userMeta?: Record<string, any>) => {
     try {
@@ -44,8 +50,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         .single();
 
       if (profileError) {
-        console.warn('[Auth] Profile query notice:', profileError.message);
-        // Fallback profile so investigator can access UI even before migration is applied
         setProfile({
           id: userId,
           display_name: userMeta?.display_name || userMeta?.email?.split('@')[0] || 'Investigator',
@@ -57,8 +61,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
 
       setProfile(data as UserProfile);
-    } catch (err) {
-      console.warn('[Auth] Profile fetch error:', err);
+    } catch {
       setProfile({
         id: userId,
         display_name: userMeta?.display_name || 'Investigator',
@@ -70,7 +73,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
-    // Initialize from stored session
+    // 1. Check for active Demo Session in localStorage
+    try {
+      const storedDemo = localStorage.getItem(DEMO_SESSION_KEY);
+      if (storedDemo) {
+        const parsed = JSON.parse(storedDemo);
+        setUser(parsed.user);
+        setSession(parsed.session);
+        setProfile(parsed.profile);
+        setIsDemoMode(true);
+        mockStore.setDemoActive(true);
+        setLoading(false);
+        return;
+      }
+    } catch {
+      // Ignored
+    }
+
+    // 2. Otherwise initialize from Supabase stored session
     supabase.auth.getSession().then(({ data }) => {
       const s = data.session;
       setSession(s);
@@ -83,10 +103,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       } else {
         setLoading(false);
       }
+    }).catch(() => {
+      setLoading(false);
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (_event: string, s: Session | null) => {
+        // If demo session is active, keep demo session intact
+        if (localStorage.getItem(DEMO_SESSION_KEY)) return;
+
         setSession(s);
         setUser(s?.user ?? null);
         if (s?.user) {
@@ -106,10 +131,53 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   }, [fetchProfile]);
 
+  const signInDemo = (role: OsinetRole = 'INVESTIGATOR') => {
+    setError(null);
+    const demoUser: any = {
+      id: 'usr-demo-lead',
+      email: 'investigator.demo@osinet.intel',
+      user_metadata: {
+        display_name: 'Inv. Alexander Cross',
+      },
+      role: 'authenticated',
+      app_metadata: {},
+      aud: 'authenticated',
+      created_at: new Date().toISOString(),
+    };
+
+    const demoSession: any = {
+      access_token: 'osinet-demo-jwt-simulated-token',
+      token_type: 'bearer',
+      user: demoUser,
+      expires_in: 86400 * 30,
+    };
+
+    const demoProfile: UserProfile = {
+      id: 'usr-demo-lead',
+      display_name: 'Inv. Alexander Cross',
+      email: 'investigator.demo@osinet.intel',
+      role,
+      created_at: new Date().toISOString(),
+    };
+
+    localStorage.setItem(
+      DEMO_SESSION_KEY,
+      JSON.stringify({ user: demoUser, session: demoSession, profile: demoProfile })
+    );
+    mockStore.setDemoActive(true);
+
+    setUser(demoUser);
+    setSession(demoSession);
+    setProfile(demoProfile);
+    setIsDemoMode(true);
+    setLoading(false);
+  };
+
   const signIn = async (email: string, password: string) => {
     setError(null);
     setLoading(true);
     try {
+      localStorage.removeItem(DEMO_SESSION_KEY);
       const { error: signInError } = await supabase.auth.signInWithPassword({
         email,
         password,
@@ -127,6 +195,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setError(null);
     setLoading(true);
     try {
+      localStorage.removeItem(DEMO_SESSION_KEY);
       const { data, error: signUpError } = await supabase.auth.signUp({
         email,
         password,
@@ -149,7 +218,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signOut = async () => {
     setError(null);
-    await supabase.auth.signOut();
+    localStorage.removeItem(DEMO_SESSION_KEY);
+    try {
+      await supabase.auth.signOut();
+    } catch {
+      // Ignored
+    }
     setUser(null);
     setSession(null);
     setProfile(null);
@@ -165,8 +239,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         error,
         signIn,
         signUp,
+        signInDemo,
         signOut,
         isAuthenticated: !!user,
+        isDemoMode,
       }}
     >
       {children}

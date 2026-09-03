@@ -2,7 +2,7 @@
  * OSINET Frontend — App Layout (Sidebar + Header Shell)
  */
 import React, { useState } from 'react';
-import { NavLink, useNavigate, Outlet } from 'react-router-dom';
+import { NavLink, Link, useNavigate, Outlet } from 'react-router-dom';
 import { useAuth } from '../features/auth/AuthContext';
 import {
   LayoutDashboard,
@@ -21,6 +21,7 @@ import {
   Bell,
   Menu,
   X,
+  Sparkles,
 } from 'lucide-react';
 
 interface NavItemDef {
@@ -44,7 +45,7 @@ const mainNavItems: NavItemDef[] = [
 ];
 
 const adminNavItems: NavItemDef[] = [
-  { path: '/admin/providers', label: 'Providers', icon: <Plug size={18} />, implemented: false, badge: 'Soon' },
+  { path: '/admin/providers', label: 'Providers', icon: <Plug size={18} />, implemented: true, badge: 'Live' },
   { path: '/admin/audit', label: 'Audit Log', icon: <ScrollText size={18} />, implemented: false, badge: 'Soon' },
 ];
 
@@ -198,7 +199,25 @@ export default function AppLayout() {
             </span>
           </div>
 
-          <div className="header-right">
+          <div className="header-right" style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>
+            <Link
+              to="/admin/providers"
+              className="badge badge-open"
+              style={{
+                textDecoration: 'none',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '4px 10px',
+                fontSize: '0.75rem',
+                cursor: 'pointer',
+              }}
+              title="Click to view simulated OSINT provider status and live sandbox"
+            >
+              <span className="badge-dot" style={{ background: 'var(--color-success)' }} />
+              <Sparkles size={12} />
+              <span>Demo Mode: 8 APIs Ready</span>
+            </Link>
             <button className="btn btn-ghost btn-icon" aria-label="Notifications" id="notifications-btn">
               <Bell size={16} />
             </button>

@@ -12,6 +12,7 @@ import DashboardPage from './features/dashboard/DashboardPage';
 import CasesPage from './features/cases/CasesPage';
 import CaseDetailPage from './features/cases/CaseDetailPage';
 import CreateCasePage from './features/cases/CreateCasePage';
+import ProvidersPage from './features/providers/ProvidersPage';
 import NotFoundPage from './pages/NotFoundPage';
 import ComingSoonPage from './pages/ComingSoonPage';
 
@@ -45,7 +46,7 @@ export default function App() {
             <Route path="/evidence" element={<ComingSoonPage title="Evidence" phase="Phase 2" description="Manage evidence with full provenance, chain of custody, and integrity hashing." />} />
             <Route path="/findings" element={<ComingSoonPage title="Findings" phase="Phase 3" description="Document and structure investigation findings for reporting." />} />
             <Route path="/reports" element={<ComingSoonPage title="Reports" phase="Phase 3" description="Generate professional investigation reports with full evidence provenance." />} />
-            <Route path="/admin/providers" element={<ComingSoonPage title="Intelligence Providers" phase="Phase 3" description="Configure and monitor OSINT intelligence provider integrations." />} />
+            <Route path="/admin/providers" element={<ProvidersPage />} />
             <Route path="/admin/audit" element={<ComingSoonPage title="Audit Log" phase="Phase 2" description="Full audit trail of all platform actions and administrative events." />} />
           </Route>
 
