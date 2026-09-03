@@ -62,3 +62,6 @@ coverage/
 *.key
 *.cert
 secrets/
+
+.vercel
+.env*
